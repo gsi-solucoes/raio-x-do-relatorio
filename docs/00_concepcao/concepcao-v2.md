@@ -28,6 +28,30 @@ teste do Gemini Nano deixa de decidir algo. A inteligência vale para todo mundo
 
 **Ciclo:** age → lembra → pensa → entrega → guarda. Na próxima vez lembra mais, pensa melhor e pergunta menos.
 
+### Como o cérebro funciona: as partes e os recados (Galindo, 28/11/2026: "cada uma tem suas funções e elas se comunicam")
+| Parte | Parecida com | Função | Manda recado para |
+|---|---|---|---|
+| **Olhos** (age: entrada) | Visão | Abre o arquivo e faz o **mapa**: cada célula com endereço e o que tem em cima, embaixo e dos lados. Não decide | Neurônios |
+| **Neurônios** | Células nervosas | Cada um faz uma pergunta pequena sobre uma célula ("cara de data?", "rótulo ao lado?", "se repete?") e dá um sinal forte ou fraco | Lembrar e Raciocínio |
+| **Ligações** | Sinapses | Ligam neurônios a conclusões, cada uma com uma **força**. O aprendizado mora aqui: acertou engrossa, errou afina | (usadas pelo Raciocínio) |
+| **Lembrar** | Recordação | Quando um neurônio acende, a memória devolve o que já viu parecido | Raciocínio |
+| **Raciocínio** (pensa) | Córtex | Sinal × força da ligação, soma e chega à conclusão com **grau de certeza** | Senso crítico |
+| **Senso crítico** (confere) | A parte que desconfia | "Bate com as provas?" Se não bate, devolve ao Raciocínio | Raciocínio ou Boca |
+| **Memória** (guarda) | Hipocampo | **Curto prazo:** o arquivo de agora e o que já concluiu nele. **Longo prazo:** sala de aula e o que o cliente confirmou (provisório até conferir) | Lembrar |
+| **Boca** (entrega) | Fala | "Já identifiquei sozinho" (certeza alta) ou "Preciso da sua ajuda" (certeza baixa, com a conclusão pronta) | Pessoa → Memória |
+| **Escola** (sala de aula) | Estudos | Fora do app, na oficina: exercícios com gabarito ajustam as ligações; sai a carga de fora | Memória longa |
+
+**Exemplo "Eugênio":** Olhos: "B5 = Eugênio; em cima 'Responsável'; do lado 'Pedido 9100' e '12/10/2026'" →
+Neurônios: cara de texto (forte), rótulo 'Responsável' (forte), repete em 40 pedidos (forte), vizinhas registro e data (médio) →
+Lembrar: "'Responsável' com nomes que se repetem: 190 de 200 vezes era categoria" → Raciocínio: categoria, 95% →
+Senso crítico: bate (mesmo nome em muitos pedidos diferentes) → Boca: "Já identifiquei sozinho: Responsável = categoria" →
+Memória curta: "Responsável resolvido", e o resto do arquivo usa isso → a pessoa confirma → memória longa firme e ligação engrossa.
+Com certeza baixa, iria para "Preciso da sua ajuda": "Parece categoria, porque fica sempre na coluna dos nomes. Confere?".
+
+**Por que é um cérebro e não uma lista de regras:** ninguém decide sozinho (a conclusão é a soma); quem aprende são as
+ligações, não o código; o que se concluiu numa célula ou num relatório vira pista para o outro; ele duvida de si mesmo
+(senso crítico e grau de certeza decidem quando perguntar).
+
 **Livro de conceitos:** o que é planilha, tipos de célula, tipos de planilha (tabela, ficha, agrupado, cabeçalho
 deslocado ou repetido, formulário, título + tabela), ordem natural das datas, código × número × valor (R$).
 Fica num arquivo separado, que o script lê antes de pensar. Hoje está espalhado em `analise_manual.md` e no código.
