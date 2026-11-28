@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="pt-BR"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Teste Gemini Nano</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#1d2330;--mut:#5b6474;--bd:#d9dde4;--ok:#1a7f45;--no:#b42318;--ac:#2b59c3}
+@media (prefers-color-scheme:dark){:root{--bg:#14171c;--card:#1d2128;--tx:#e8ebf0;--mut:#9aa3b2;--bd:#323844;--ok:#4cc38a;--no:#f97066;--ac:#7aa2ff}}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 system-ui,sans-serif}
+main{max-width:860px;margin:0 auto;padding:16px}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:10px;padding:16px;margin:12px 0}
+h1{font-size:22px;margin:4px 0}.mut{color:var(--mut);font-size:14px}
+button{font:inherit;padding:10px 16px;border-radius:8px;border:0;background:var(--ac);color:#fff;cursor:pointer;margin:4px 8px 4px 0}
+button:disabled{opacity:.5;cursor:default}
+table{width:100%;border-collapse:collapse;font-size:14px}td,th{border-bottom:1px solid var(--bd);padding:6px 4px;text-align:left;vertical-align:top}
+.ok{color:var(--ok);font-weight:600}.no{color:var(--no);font-weight:600}
+#placar{font-size:20px;font-weight:600}pre{white-space:pre-wrap;font-size:12px;max-height:240px;overflow:auto}
+.tw{overflow-x:auto}
+</style></head><body><main>
+<h1>Teste da IA do Chrome (Gemini Nano)</h1>
+<p class="mut">A IA que já vem no Chrome do computador decide "qual data é esta?" em perguntas de arquivos <b>fictícios</b>. Nada sai do seu computador. No fim, toque em <b>Copiar resultado</b> e cole na conversa.</p>
+<div class="card"><div id="st">Verificando se o seu Chrome tem a IA…</div>
+<button id="go" disabled>Começar o teste</button><button id="cp" disabled>Copiar resultado</button>
+<div id="placar"></div></div>
+<div class="card tw"><table><thead><tr><th>#</th><th>Arquivo / grupo</th><th>Certo</th><th>IA</th><th>Regras</th></tr></thead><tbody id="tb"></tbody></table></div>
+<details class="card"><summary>Detalhes técnicos</summary><pre id="log"></pre></details>
+</main><script>
+const CASOS=/*CASOS*/[];
+const OPCOES=['Abertura / pedido','Compra / nota','Início do serviço','Fim do serviço / executado','Encerramento / baixa','Previsão / programada','Competência / período','Nascimento','Outra','?'];
+const SIS="Você decide o significado de uma coluna de datas de um relatório. Um programa leu o relatório e te mostra as pistas de um grupo de células que são datas. Diga QUAL data é, escolhendo exatamente uma destas opções: "+OPCOES.join('; ')+". Use 'Outra' se for uma data com outro significado e '?' se não der para saber. Responda SOMENTE com JSON: {\"qual_data\": \"<opção>\", \"confianca\": \"alta|média|baixa\", \"porque\": \"<curto>\"}.";
+const SCHEMA={type:'object',properties:{qual_data:{type:'string',enum:OPCOES},confianca:{type:'string',enum:['alta','média','baixa']},porque:{type:'string'}},required:['qual_data','confianca','porque']};
+const $=id=>document.getElementById(id), log=t=>{$('log').textContent+=t+'\n'};
+const API=globalThis.LanguageModel||(globalThis.ai&&globalThis.ai.languageModel);
+let linhas=[], info='';
+function conferir(c,sig){
+  if(sig==='Abertura / pedido'&&c.antes.length) return '"'+c.grupo+'" tem data ANTES dele ('+c.antes.join(', ')+'), então não pode ser a abertura.';
+  if(sig==='Encerramento / baixa'&&c.depois.length) return '"'+c.grupo+'" tem data DEPOIS dele ('+c.depois.join(', ')+'), então não pode ser o encerramento.';
+  return null;}
+async function criar(){
+  const base={initialPrompts:[{role:'system',content:SIS}],monitor(m){m.addEventListener('downloadprogress',e=>{$('st').textContent='Baixando a IA no Chrome (só da 1ª vez): '+Math.round(e.loaded*100)+'%';});}};
+  try{return await API.create(Object.assign({expectedInputs:[{type:'text',languages:['pt']}],expectedOutputs:[{type:'text',languages:['pt']}]},base));}
+  catch(e){log('sem pt: '+e.message);return await API.create(base);}}
+async function pergunta(s,txt){
+  let r; try{r=await s.prompt(txt,{responseConstraint:SCHEMA});}catch(e){log('sem schema: '+e.message);r=await s.prompt(txt);}
+  const m=r.match(/\{[\s\S]*\}/); try{return JSON.parse(m?m[0]:r);}catch(e){return {qual_data:'?',confianca:'baixa',porque:'resposta inválida: '+r.slice(0,80)};}}
+async function rodar(){
+  $('go').disabled=true; linhas=[]; $('tb').innerHTML=''; let ia=0,re=0; const t0=performance.now();
+  const mae=await criar(); $('st').textContent='Rodando…';
+  for(let i=0;i<CASOS.length;i++){const c=CASOS[i],t=performance.now();
+    const s=mae.clone?await mae.clone():await criar(); let j=await pergunta(s,c.dossie), volta='';
+    if(!OPCOES.includes(j.qual_data)) j=await pergunta(s,'Resposta inválida. Escolha EXATAMENTE uma opção: '+OPCOES.join('; ')+'. Responda só o JSON.');
+    const p=conferir(c,j.qual_data); if(p){volta=' (rejeitada: '+j.qual_data+')'; j=await pergunta(s,'O programa conferiu e rejeitou: '+p+' Pense de novo e responda só o JSON.');}
+    if(s.destroy) s.destroy();
+    const okI=j.qual_data===c.certo, okR=c.regras===c.certo; ia+=okI; re+=okR;
+    const seg=((performance.now()-t)/1000).toFixed(0);
+    const tr=document.createElement('tr');
+    [String(i+1),c.arquivo+' / '+c.grupo,c.certo,(okI?'✅ ':'❌ ')+j.qual_data+' ['+j.confianca+']'+volta,(okR?'✅ ':'❌ ')+c.regras].forEach((v,k)=>{const td=document.createElement('td');td.textContent=v;if(k===3)td.className=okI?'ok':'no';if(k===4)td.className=okR?'ok':'no';tr.appendChild(td);});
+    $('tb').appendChild(tr);
+    linhas.push((i+1)+'. '+c.arquivo+' | '+c.grupo+' | certo: '+c.certo+' | IA: '+(okI?'OK ':'ERRO ')+j.qual_data+' ['+j.confianca+']'+volta+' | regras: '+(okR?'OK ':'ERRO ')+c.regras+' | '+seg+'s | porquê: '+(j.porque||'').slice(0,140));
+    $('placar').textContent='IA: '+ia+' de '+(i+1)+' · regras: '+re+' de '+(i+1);}
+  const min=((performance.now()-t0)/60000).toFixed(1);
+  linhas.push('TOTAL IA: '+ia+' de '+CASOS.length+' | regras: '+re+' de '+CASOS.length+' | '+min+' min | '+info);
+  $('st').textContent='Pronto em '+min+' min. Toque em Copiar resultado e cole na conversa.'; $('cp').disabled=false; $('go').disabled=false;}
+$('go').onclick=()=>rodar().catch(e=>{$('st').textContent='Deu erro: '+e.message;log(e.stack||e);$('go').disabled=false;});
+$('cp').onclick=async()=>{const t='Teste Gemini Nano\n'+linhas.join('\n');try{await navigator.clipboard.writeText(t);$('cp').textContent='Copiado ✔';}catch(e){$('log').textContent=t;document.querySelector('details').open=true;}};
+(async()=>{info=navigator.userAgent.match(/Chrome\/[\d.]+/)?.[0]||navigator.userAgent;
+  if(!API){$('st').innerHTML='<b>Este navegador não tem a IA do Chrome.</b> Precisa do Google Chrome no computador (Windows, Mac ou Linux), versão 138 ou mais nova. No celular não funciona.';return;}
+  let a; try{a=await API.availability();}catch(e){a='erro: '+e.message;}
+  log('availability: '+a+' | '+info);
+  const msg={available:'A IA está pronta no seu Chrome.',downloadable:'Seu Chrome aceita a IA. Ao começar, ele baixa o modelo (só da 1ª vez, alguns GB; pode demorar).',downloading:'O Chrome já está baixando a IA. Pode começar e esperar.',unavailable:'Seu computador não atende o que o Chrome pede para a IA (cerca de 22 GB livres no disco e placa de vídeo com mais de 4 GB ou 16 GB de memória).'};
+  $('st').textContent=(msg[a]||('Situação: '+a))+' São '+CASOS.length+' perguntas.'; $('go').disabled=a==='unavailable';})();
+</script></body></html>
